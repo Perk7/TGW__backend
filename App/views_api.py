@@ -10,6 +10,11 @@ from .models_main import Country, Regions, Squad
 from .models_saves import SaveCountry
 from django.contrib.auth import login
 
+from django.db.utils import OperationalError
+
+from django.db import transaction
+import datetime
+
 def change_cap(x):
     cap =  get_object_or_404(Regions, id=x['fields']['capital'])
     coun = get_object_or_404(Country, id=x['pk'])
@@ -29,7 +34,7 @@ def change_cap(x):
     elif govern == 'M':
         x['fields']['government'] = 'Абсолютная монархия'
     elif govern == 'D':
-        x['fields']['government'] = 'Однопартийная Диктатура'
+        x['fields']['government'] = 'Однопартийная диктатура'
     elif govern == 'R':
         x['fields']['government'] = 'Республика'
 
@@ -58,22 +63,58 @@ def all_countries(request):
 def saved_games(request):
     if not request.user.is_authenticated:
         post = request.data
-        if CustomAuth.objects.filter(username=post['login']):
-            user = get_object_or_404(CustomAuth, username=post['login'])
-            checking = check_password(post['password'], user.password)
-            if checking:
-                login(request, user)
-                data = serializers.serialize("json", list(request.user.saves.all()))
-                des = json.loads(data)
-                new_des = list(map(change_load, des))
-                data = json.dumps(new_des)
-                return Response(data, status=status.HTTP_201_CREATED)
-        return Response(json.dumps({
-            'saves': 'error',
-        }), status=status.HTTP_201_CREATED)
+        try:
+            if CustomAuth.objects.filter(username=post['login']):
+                user = get_object_or_404(CustomAuth, username=post['login'])
+                checking = check_password(post['password'], user.password)
+                if checking:
+                    login(request, user)
+                    data = serializers.serialize("json", list(request.user.saves.all()))
+                    des = json.loads(data)
+                    new_des = list(map(change_load, des))
+                    data = json.dumps(new_des)
+                    return Response(data, status=status.HTTP_201_CREATED)
+            return Response(json.dumps({
+                'saves': 'error',
+            }), status=status.HTTP_201_CREATED)
+        except OperationalError:
+            pass
     else:
         data = serializers.serialize("json", list(request.user.saves.all()))
         des = json.loads(data)
         new_des = list(map(change_load, des))
         data = json.dumps(new_des)
         return Response(data, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+def delete_save(request):
+    data = request.data
+    try:
+        user = get_object_or_404(CustomAuth, username=data['user'])
+    except OperationalError:
+        pass
+    time = data['time']
+    time = ' '.join(time.split('T'))[0:-1]
+    deler = None
+    for i in user.saves.all():
+        if time == str(i.save_date)[0:-9]:
+            deler = i
+
+    user.saves.remove(deler)
+    with transaction.atomic():
+        print(deler.country)
+        deler.regions.all().delete()
+        deler.country_ai.all().delete()
+        deler.contracts.all().delete()
+        deler.squad.all().delete()
+        deler.squad_ai.all().delete()
+        deler.relations.all().delete()
+
+    deler.delete()
+
+    data = serializers.serialize("json", list(user.saves.all()))
+    des = json.loads(data)
+    new_des = list(map(change_load, des))
+    data = json.dumps(new_des)
+
+    return Response(data, status=status.HTTP_201_CREATED)

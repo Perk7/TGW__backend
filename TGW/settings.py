@@ -28,7 +28,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -77,10 +76,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'TGW.wsgi.application'
 
-EMAIL_HOST = 'smtp.mail.ru'
-EMAIL_PORT = 2525
-EMAIL_HOST_USER = "the_great_war@mail.ru"
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_HOST_USER = 'TGW.2021@yandex.ru'
 EMAIL_HOST_PASSWORD = 'Denpro123!'
+EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -144,7 +143,10 @@ STATICFILES_DIRS = [
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
-       'http://localhost:3000',
+       'http://192.168.1.13:3000',
+       'http://localhost:3000'
 )
 
 AUTH_USER_MODEL = 'App.CustomAuth'
+
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'

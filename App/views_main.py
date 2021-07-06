@@ -4,10 +4,23 @@ from django.conf import settings
 import os
 import openpyxl
 
-from .models_main import Country, Regions, Squad, Relations, Tax, Contracts
+from .models_main import Country, Regions, Squad, Relations, Contracts
+
+from .models_saves import *
 
 def index(request):
 	return render(request, 'index.html')
+
+def clear(request):
+    SaveSquad.objects.all().delete()
+    SaveSquadAI.objects.all().delete()
+    SaveContracts.objects.all().delete()
+    SaveCountry.objects.all().delete()
+    SaveRelations.objects.all().delete()
+    SaveRegions.objects.all().delete()
+    SaveCountryAI.objects.all().delete()
+
+    StartGame.objects.all().delete()
 
 def excel(request):
     base_dir = settings.MEDIA_ROOT
@@ -15,12 +28,13 @@ def excel(request):
     my_wb_obj = openpyxl.load_workbook(path)
     sheet_ranges = my_wb_obj.active
 
-    for model in (Regions, Squad, Country, Relations, Tax, Contracts):
+    for model in (Regions, Squad, Country, Relations, Contracts):
         items = model.objects.all()
-        items.delete()
+        if items:
+            items.delete()
 
     # Regions
-    for x in sheet_ranges['C':'BZ']:
+    for x in sheet_ranges['C':'CA']:
         print()
         obj = Regions(
                         name = x[0].value,
@@ -41,55 +55,77 @@ def excel(request):
                         cargo_ship = x[15].value,
                         people_ship =x[16].value,
 
-                        industry_blackmetall = x[20].value,
-                        industry_colormetall = x[21].value,
-                        industry_coal = x[22].value,
+                        industry_blackmetall = x[20].value*1000,
+                        industry_colormetall = x[21].value*1000,
+                        industry_coal = x[22].value*1000,
 
-                        industry_hunting = x[23].value,
-                        industry_fishing = x[24].value,
+                        industry_hunting = x[23].value*1000,
+                        industry_fishing = x[24].value*1000,
 
-                        industry_forestry = x[25].value,
+                        industry_forestry = x[25].value*1000,
 
-                        industry_blacksmith = x[26].value,
+                        industry_blacksmith = x[26].value*1000,
 
-                        industry_animals = x[27].value,
-                        industry_vegetable = x[28].value,
-                        industry_wheat = x[29].value,
-                        industry_typography = x[30].value,
+                        industry_animals = x[27].value*1000,
+                        industry_vegetable = x[28].value*1000,
+                        industry_wheat = x[29].value*1000,
+                        industry_typography = x[30].value*1000,
 
-                        industry_light = x[31].value,
+                        industry_light = x[31].value*1000,
 
-                        industry_eating = x[32].value,
+                        industry_eating = x[32].value*1000,
 
-                        industry_jewelry = x[33].value,
+                        industry_jewelry = x[33].value*1000,
 
-                        industry_transport = x[34].value,
+                        industry_transport = x[34].value*1000,
 
-                        industry_alchemy = x[35].value,
+                        industry_alchemy = x[35].value*1000,
 
-                        industry_hiring = x[36].value,
+                        industry_hiring = x[36].value*1000,
 
-                        industry_culture = x[37].value,
+                        industry_culture = x[37].value*1000,
 
-                        industry_other = x[38].value,
-                        )
+                        industry_other = x[38].value*1000,
+
+                        needs_blackmetall = x[41].value*1000,
+
+                        needs_colormetall = x[42].value*1000,
+                        needs_coal = x[43].value*1000,
+
+                        needs_hunting = x[44].value*1000,
+                        needs_fishing = x[45].value*1000,
+
+                        needs_forestry = x[46].value*1000,
+
+                        needs_blacksmith = x[47].value*1000,
+
+                        needs_animals = x[48].value*1000,
+                        needs_vegetable = x[49].value*1000,
+                        needs_wheat = x[50].value*1000,
+                        needs_typography = x[51].value*1000,
+
+                        needs_light = x[52].value*1000,
+
+                        needs_eating = x[53].value*1000,
+
+                        needs_jewelry = x[54].value*1000,
+
+                        needs_transport = x[55].value*1000,
+
+                        needs_alchemy = x[56].value*1000,
+
+                        needs_hiring = x[57].value*1000,
+
+                        needs_culture = x[58].value*1000,
+
+                        needs_other = x[59].value*1000,
+                                                )
         obj.save()
 
     items = Country.objects.all()
     items.delete()
     regs = Regions.objects.all()
     i = 0
-
-    # Tax
-    for x in sheet_ranges['B':'AE']:
-        obj = Tax(
-            tax_type=x[144].value,
-            name=x[145].value,
-            status=x[146].value,
-            value=float(x[147].value)
-        )
-
-        obj.save()
 
     # Countries
     for x in sheet_ranges['C':'W']:
@@ -140,6 +176,9 @@ def excel(request):
                         law_free_enterspire = bool(x[107].value),
                         law_work_day_limit = bool(x[108].value),
                         law_death_penalty = bool(x[109].value),
+
+                        tax_physic=x[144].value,
+                        tax_jurid=x[145].value,
                         )
         obj.save()
 
@@ -148,10 +187,6 @@ def excel(request):
             for reg in regions:
                 side = get_object_or_404(Regions, name=reg)
                 obj.regions.add(side.id)
-
-        for i in range(112, 118):
-            pair_one = get_object_or_404(Tax, name=sheet_ranges['A'][i].value, value=x[i].value)
-            obj.taxes.add(pair_one.id)
 
     # Relations
     start = 120
@@ -168,7 +203,7 @@ def excel(request):
         start += 1
 
     # Squad
-    for x in sheet_ranges['B':'CE']:
+    for x in sheet_ranges['B':'BL']:
         country = get_object_or_404(Country, name=x[169].value)
 
         obj = Squad(
@@ -177,9 +212,6 @@ def excel(request):
             cavallery_quan = x[161].value,
 
             catapult_quan = x[163].value,
-
-            esmin_quan = x[165].value,
-            linkor_quan = x[166].value,
 
             place_type = str(x[168].value).upper(),
 
@@ -191,9 +223,10 @@ def excel(request):
         obj.save()
 
     # Contracts
-    for x in sheet_ranges['B':'EI']:
+    for x in sheet_ranges['B':'EJ']:
         obj = Contracts(
             con_type = x[154].value,
+            priority = x[155].value,
         )
 
         obj.save()
