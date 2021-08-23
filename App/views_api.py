@@ -29,6 +29,10 @@ def change_cap(x):
     x['fields']['area'] = coun.get_area()
     x['fields']['gdp'] = coun.get_gdp()
     x['fields']['army'] = army_col
+    regs = []
+    for i in x['fields']['regions']:
+        regs.append(get_object_or_404(Regions, id=i).name)
+    x['fields']['regions'] = regs
     if govern == 'O':
         x['fields']['government'] = 'Ограниченная монархия'
     elif govern == 'M':
@@ -102,13 +106,13 @@ def delete_save(request):
 
     user.saves.remove(deler)
     with transaction.atomic():
-        print(deler.country)
         deler.regions.all().delete()
         deler.country_ai.all().delete()
         deler.contracts.all().delete()
         deler.squad.all().delete()
         deler.squad_ai.all().delete()
         deler.relations.all().delete()
+        deler.buffs.delete()
 
     deler.delete()
 

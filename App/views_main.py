@@ -203,8 +203,8 @@ def excel(request):
         start += 1
 
     # Squad
-    for x in sheet_ranges['B':'BL']:
-        country = get_object_or_404(Country, name=x[169].value)
+    for x in sheet_ranges['B':'BJ']:
+        country = get_object_or_404(Country, name=x[166].value)
 
         obj = Squad(
             pechot_quan = x[159].value,
@@ -213,20 +213,32 @@ def excel(request):
 
             catapult_quan = x[163].value,
 
-            place_type = str(x[168].value).upper(),
+            place_type = str(x[165].value).upper(),
 
             country = country,
 
-            status = str(x[170].value).upper()
+            status = str(x[167].value).upper(),
+            place = str(x[168].value),
         )
 
         obj.save()
 
     # Contracts
     for x in sheet_ranges['B':'EJ']:
+        deadline = 9999
+        if x[154].value in ('CT', 'SH', 'EH', ):
+            deadline = 12
+        if x[154].value in ('PA'):
+            deadline = 24
+        if x[154].value in ('FW'):
+            deadline = 48
+        if x[154].value in ('CP'):
+            deadline = 60
+
         obj = Contracts(
             con_type = x[154].value,
             priority = x[155].value,
+            deadline = deadline
         )
 
         obj.save()

@@ -134,13 +134,13 @@ class Abstract_Country(models.Model):
     def get_stone_road(self):
         summ = 0
         for i in self.regions.all():
-            summ += i.aqueducs
+            summ += i.stone_road
         return summ / len(self.regions.all())
 
     def get_pave_road(self):
         summ = 0
         for i in self.regions.all():
-            summ += i.aqueducs
+            summ += i.pave_road
         return summ / len(self.regions.all())
 
     def get_poverty(self):
@@ -438,14 +438,11 @@ class Abstract_Country(models.Model):
     technology = models.FloatField(default=0.6)
     export_trash = models.FloatField(default=0.6)
 
-    def get_panteon_daedra(self):
-        return 1.0 - self.panteon_eight - self.panteon_nine
-
     support = models.FloatField(default=0.6)
     stability = models.FloatField(default=0.6)
 
-    government = models.CharField(max_length=7,
-                                  default='m,t,a,p')  # m(M-monarchy,O-parlament monarchy,D-dictator,R-republic), t(0,1,2), a(0,1,2), p(0,1,2)
+    government = models.CharField(max_length=5,
+                                  default='m,t,a')  # m(M-monarchy,O-parlament monarchy,D-dictator,R-republic), t(0,1), a(0,1)
     area_format = models.CharField(max_length=7,
                                    default='c,p,l,e')  # c(C-centraliz, D-decentraliz), p(S-svobod, O-ogranich, Z-zaprech), l(M-mestnaya, F-feder), e(I-izbir, N-naznach)
 
@@ -510,19 +507,26 @@ class Abstract_Contracts(models.Model):
     YEAR_IN_SCHOOL_CHOICES = [
         ('AL', 'Alliance'),
         ('CM', 'Common market'),
+        ('PA', 'Passage of army'),
+
         ('CT', 'Culture transfer'),
         ('SH', 'Social help'),
         ('EH', 'Economic help'),
-        ('PA', 'Passage of army'),
+        ('CP', 'Contract of Peace'),
+
         ('ES', 'Economic sanctions'),
         ('DW', 'Declare war'),
-        ('CP', 'Contract of Peace'),
         ('FW', 'Finish war'),
+
         ('VC', 'Vassal country'),
     ]
 
     con_type = models.CharField(max_length=2, choices=YEAR_IN_SCHOOL_CHOICES, default='EH')
     priority = models.CharField(max_length=30, default='')
+    
+    occuped = models.TextField(default='', blank=True)
+    spends = models.CharField(max_length=25, default='0_0')
+    deadline = models.IntegerField(default=99999)
 
     def __str__(self):
         return elf.pair.all()[0].name + '-' + self.pair.all()[1].name + ' : ' + str(self.con_type)
@@ -543,6 +547,8 @@ class Abstract_Squad(models.Model):
     place_type = models.CharField(max_length=1, choices=[('G', 'Ground'), ('S', 'Sea')], default='G')
 
     status = models.CharField(max_length=1, choices=[('R', 'Ready'), ('Q', 'Quartered')], default='Q')
+
+    place = models.CharField(max_length=30, default='')
 
     def summ(self):
         final = self.pechot_quan + self.archer_quan + self.cavallery_quan + self.catapult_quan * 10

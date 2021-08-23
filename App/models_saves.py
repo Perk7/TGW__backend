@@ -131,7 +131,7 @@ class SaveCountryAI(models.Model):
     		area_format = self.area_format,
     		army_quality = self.army_quality,
     		tax_physic = self.tax_physic,
-           tax_jurid = self.tax_jurid
+            tax_jurid = self.tax_jurid
     	)
 
 class SaveRelations(Abstract_Relations):
@@ -227,8 +227,85 @@ class SaveSquad(Abstract_Squad):
 				b[i] = a[i]
 		return b
 
+class CountryBonus(models.Model):
+    step = models.IntegerField(default=1)
+    actions = models.IntegerField(default=10)
+
+    support = models.FloatField(default=0)
+    stability = models.FloatField(default=0)
+
+    population = models.FloatField(default=0)
+
+    inflation = models.FloatField(default=0)
+    poverty = models.FloatField(default=0)
+    unemployment = models.FloatField(default=0)
+    avg_salary = models.FloatField(default=0)
+
+    infrastructure = models.FloatField(default=0)
+    stone_road = models.FloatField(default=0)
+    pave_road = models.FloatField(default=0)
+    trash = models.FloatField(default=0)
+    port = models.FloatField(default=0)
+    delivery_box = models.FloatField(default=0)
+    delivery_people = models.FloatField(default=0)
+    aqueducs = models.FloatField(default=0)
+
+    alchemy = models.FloatField(default=0)
+    magic = models.FloatField(default=0)
+    science = models.FloatField(default=0)
+    technology = models.FloatField(default=0)
+
+    education_quality = models.FloatField(default=0)
+    education_access = models.FloatField(default=0)
+    schools = models.FloatField(default=0)
+    universities = models.FloatField(default=0)
+
+    army_quality = models.FloatField(default=0)
+
+    industry_blackmetall = models.FloatField(default=0)
+    industry_colormetall = models.FloatField(default=0)
+    industry_coal = models.FloatField(default=0)
+    industry_hunting = models.FloatField(default=0)
+    industry_fishing = models.FloatField(default=0)
+    industry_forestry = models.FloatField(default=0)
+    industry_blacksmith = models.FloatField(default=0)
+    industry_animals = models.FloatField(default=0)
+    industry_vegetable = models.FloatField(default=0)
+    industry_wheat = models.FloatField(default=0)
+    industry_typography = models.FloatField(default=0)
+    industry_light = models.FloatField(default=0)
+    industry_eating = models.FloatField(default=0)
+    industry_jewelry = models.FloatField(default=0)
+    industry_transport = models.FloatField(default=0)
+    industry_alchemy = models.FloatField(default=0)
+    industry_hiring = models.FloatField(default=0)
+    industry_culture = models.FloatField(default=0)
+    industry_other = models.FloatField(default=0)
+
+    budget_infrastructure = models.FloatField(default=0.5)
+    budget_education = models.FloatField(default=0.5)
+    budget_research = models.FloatField(default=0.5)
+    budget_propaganda = models.FloatField(default=0.5)
+    budget_government = models.FloatField(default=0.5)
+
+    kazna = models.IntegerField(default=10_000_000)
+
+    class Meta:
+    	    verbose_name = 'Save Баффы'
+    	    verbose_name_plural = 'Save Баффы'
+
+    def as_json(self):
+    		a = self.__dict__
+    		b = {}
+    		for i in a:
+    			if i != '_state':
+    				b[i] = a[i]
+    		return b
+
 class StartGame(models.Model):
 	save_date = models.DateTimeField(auto_now=True)
+
+	buffs = models.OneToOneField(CountryBonus, on_delete=models.CASCADE)
 
 	country = models.OneToOneField(SaveCountry, on_delete=models.CASCADE)
 	regions = models.ManyToManyField(SaveRegions)
@@ -249,7 +326,7 @@ class StartGame(models.Model):
 		return dict(
 			save_date = str(self.save_date),
 			country = self.country.as_json(),
-			# regions = [SaveRegions.objects.filter(id=i.id)[0].as_json() for i in list(self.regions.all())],
+            buffs = self.buffs.as_json(),
 			relations = [SaveRelations.objects.filter(id=i.id)[0].as_json() for i in list(self.relations.all())],
 			contracts = [SaveContracts.objects.filter(id=i.id)[0].as_json() for i in list(self.contracts.all())],
 			squad_ai = [SaveSquadAI.objects.filter(id=i.id)[0].as_json() for i in list(self.squad_ai.all())],

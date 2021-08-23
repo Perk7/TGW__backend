@@ -24,5 +24,5 @@ urlpatterns = [
 
     url('game/start_game/', views_game.start_game, name='start_game'),
     url('game/load_game/', views_game.load_game, name='load_game'),
-    url('game/get_active_game/', views_game.get_active_game, name='get_active_game'),
+    url('game/save_game/', views_game.save_game, name='save_game'),
 ]

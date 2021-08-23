@@ -148,5 +148,4 @@ CORS_ORIGIN_WHITELIST = (
 )
 
 AUTH_USER_MODEL = 'App.CustomAuth'
-
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
