@@ -5,12 +5,7 @@ class Abstract_Regions(models.Model):
     name = models.CharField(max_length=20, default='Default region')
     capital = models.CharField(max_length=20, default='Default city')
     population = models.IntegerField(default=500_000)
-    area = models.IntegerField(default=100)
-    universities = models.IntegerField(default=5)
-    schools = models.IntegerField(default=15)
-    aqueducs = models.IntegerField(default=30)
     stone_road = models.FloatField(default=0.4)
-    pave_road = models.FloatField(default=0.1)
     poverty = models.FloatField(default=0.2)
     unemployment = models.FloatField(default=0.08)
     avg_salary = models.IntegerField(default=2500)
@@ -107,40 +102,10 @@ class Abstract_Country(models.Model):
             summ += i.population
         return summ
 
-    def get_area(self):
-        summ = 0
-        for i in self.regions.all():
-            summ += i.area
-        return summ
-
-    def get_universities(self):
-        summ = 0
-        for i in self.regions.all():
-            summ += i.universities
-        return summ
-
-    def get_schools(self):
-        summ = 0
-        for i in self.regions.all():
-            summ += i.schools
-        return summ
-
-    def get_aqueducs(self):
-        summ = 0
-        for i in self.regions.all():
-            summ += i.aqueducs
-        return summ
-
     def get_stone_road(self):
         summ = 0
         for i in self.regions.all():
             summ += i.stone_road
-        return summ / len(self.regions.all())
-
-    def get_pave_road(self):
-        summ = 0
-        for i in self.regions.all():
-            summ += i.pave_road
         return summ / len(self.regions.all())
 
     def get_poverty(self):
@@ -431,7 +396,6 @@ class Abstract_Country(models.Model):
         return summ / len(self.regions.all())
 
     education_quality = models.FloatField(default=0.6)
-    education_avail = models.FloatField(default=0.6)
     alchemy = models.FloatField(default=0.6)
     magic = models.FloatField(default=0.6)
     science = models.FloatField(default=0.6)
@@ -453,10 +417,8 @@ class Abstract_Country(models.Model):
     army_equip = models.CharField(max_length=5,
                                   default='4,3,1')  # 4(equip(1-kozhanay,2-iron,3-lamelar,4-orikhalk,5-ebonyt)), 3(komplect(1-1,2-1.5,3-2,4-3)), 1(resursi(1-min,2-avg,3-max))
 
-    maternal_capital = models.IntegerField(default=5000)
     avg_pension = models.IntegerField(default=1500)
     allowance_unemploy = models.IntegerField(default=500)
-    allowance_disability = models.IntegerField(default=500)
 
     pension_m = models.CharField(max_length=1, default='3')  # 1(50),2(55),3(60),4(65)
     pension_w = models.CharField(max_length=1, default='2')  # 1(45),2(50),3(55),4(60)
@@ -489,7 +451,6 @@ class Abstract_Country(models.Model):
         abstract = True
         verbose_name = 'Abstract Страна'
         verbose_name_plural = 'Abstract Страны'
-
 
 class Abstract_Relations(models.Model):
     value = models.IntegerField(default=0)
@@ -529,7 +490,7 @@ class Abstract_Contracts(models.Model):
     deadline = models.IntegerField(default=99999)
 
     def __str__(self):
-        return elf.pair.all()[0].name + '-' + self.pair.all()[1].name + ' : ' + str(self.con_type)
+        return self.pair.all()[0].name + '-' + self.pair.all()[1].name + ' : ' + str(self.con_type)
 
     class Meta:
         abstract = True
@@ -552,7 +513,6 @@ class Abstract_Squad(models.Model):
 
     def summ(self):
         final = self.pechot_quan + self.archer_quan + self.cavallery_quan + self.catapult_quan * 10
-
         return final
 
     def __str__(self):

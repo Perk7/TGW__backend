@@ -11,9 +11,9 @@ urlpatterns = [
     path('excel', views_main.excel, name='excel'),
     path('clear', views_main.clear, name='clear'),
 
-    url('api/country/', views_api.all_countries),
-    url('api/saved_games/', views_api.saved_games),
-    url('api/delete_save/', views_api.delete_save),
+    url('api/country/', views_api.get_all_default_countries),
+    url('api/saved_games/', views_api.get_saved_games_of_user),
+    url('api/delete_save/', views_api.delete_save_by_time),
 
     url('auth/registration', views_auth.registration),
     url('auth/check_mail', views_auth.check_email),

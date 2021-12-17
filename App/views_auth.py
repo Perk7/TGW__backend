@@ -1,135 +1,83 @@
-from django.conf import settings
-from django.core.mail import send_mail
-import random
-from django.contrib.auth import login, logout
-from rest_framework.decorators import api_view
 import json
+
+from django.contrib.auth import login, logout
+
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from rest_framework import status
-from django.contrib.auth.hashers import check_password
-from .models_auth import CustomAuth
-import datetime
 
-from django.db.utils import OperationalError
+from .services_auth import *
 
 @api_view(['POST'])
-def check_email(request):
-    try:
-        users = CustomAuth.objects.all()
-    except OperationalError:
-        pass
-    emails = [i.email for i in users]
-
+def check_email (request):
+    """
+    Check having email in db
+    """
     mail = request.data['mail']
-    if mail not in emails:
-        code = str(random.randint(1000,9999))
-        send_mail('Verification Code', f'{datetime.datetime.now()}\nПочта: {mail}\nВаш код подтверждения электронной почты: {code}\n.', settings.EMAIL_HOST_USER,
-                  [mail], fail_silently=False)
-        return Response(json.dumps({
-            'status': True,
+    code = check_email_for_uniq(mail)
+    
+    return Response(json.dumps({
+            'status': bool(code),
             'code': code
-        }), status=status.HTTP_201_CREATED)
-    else:
-        return Response(json.dumps({
-            'status': False
-        }), status=status.HTTP_201_CREATED)
-
-
+        }), status=status.HTTP_201_CREATED if code else status.HTTP_208_ALREADY_REPORTED)
+        
 @api_view(['POST'])
-def registration(request):
+def registration_in_system(request):
+    """
+    Registration in system with login, email and password
+    """
     post = request.data
-    try:
-        users = CustomAuth.objects.all()
-        usernames = [i.username for i in users]
-        emails = [i.email for i in users]
-        if post and post['login'] not in usernames and post['email'] not in emails:
-            user = CustomAuth.objects.create_user(post['login'], post['email'], post['password'])
-            user.save()
-            return Response(json.dumps({
-                'status' : True,
-                'login' : post['login'] not in usernames,
-                'email' : post['email'] not in emails,
-            }), status=status.HTTP_201_CREATED)
-        else:
-            return Response(json.dumps({
-                'status' : False,
-                'login': post['login'] not in usernames,
-                'email': post['email'] not in emails,
-            }), status=status.HTTP_201_CREATED)
-    except OperationalError:
-            pass
+    auth_status = registrate_with_values(post)
+
+    return Response(json.dumps({
+                'status' : auth_status['success'],
+                'login' : auth_status['login'],
+                'email' : auth_status['email'],
+            }), status=status.HTTP_201_CREATED if auth_status['success'] else status.HTTP_200_OK)
 
 @api_view(['POST'])
 def try_login(request):
-    if not request.user.is_authenticated:
-        post = request.data
-        try:
-            if CustomAuth.objects.filter(username=post['login']):
-                user = get_object_or_404(CustomAuth, username=post['login'])
-                checking = check_password(post['password'], user.password)
-                if checking:
-                    login(request, user)
-                    return Response(json.dumps({
-                        'status': 'success',
-                        'log': request.user.isauthenticated
-                    }), status=status.HTTP_201_CREATED)
-                else:
-                    return Response(json.dumps({
-                        'status': 'wrong',
-                    }), status=status.HTTP_201_CREATED)
-        except OperationalError:
-            pass
-        else:
-            return Response(json.dumps({
-                'status': 'wrong',
-                'log': request.user.is_authenticated
-            }), status=status.HTTP_201_CREATED)
-    else:
-        return Response(json.dumps({
-            'status': 'already',
-        }), status=status.HTTP_201_CREATED)
+    """
+    Check conditions for login and do it, if check are success
+    """
+    result = check_condition_for_login(request.user.is_authenticated, request.data)
+
+    if result['status'] == 'success':
+        login(request, result['user'])
+
+    return Response(json.dumps({
+        'status': result['status'],
+        'log': request.user.isauthenticated
+    }), status=status.HTTP_201_CREATED if result['status'] == 'success' else status.HTTP_200_OK)
 
 @api_view(['GET'])
 def try_logout(request):
     """
- 	Return all Countries
+ 	Logout user from system
  	"""
-    if request.method == 'GET':
-        logout(request)
-        return Response(status=status.HTTP_201_CREATED)
+    logout(request)
+
+    return Response(status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 def recovery_password(request):
-    mail = request.data['mail']
-    try:
-        user = get_object_or_404(CustomAuth, email=mail)
-    except OperationalError:
-        pass
-    user.set_password(request.data['password'])
-    user.save()
+    """
+    Change password of user
+    """
+    success = change_password_after_confirm_mail(request.data)
+
     return Response(json.dumps({
-            'status': 'success'
-        }), status=status.HTTP_201_CREATED)
+            'status': 'success' if success else 'fail'
+        }), status=status.HTTP_201_CREATED if success else status.HTTP_200_OK)
 
 @api_view(['POST'])
 def recovery_password_code(request):
-    try:
-        users = CustomAuth.objects.all()
-    except OperationalError:
-        pass
-    emails = [i.email for i in users]
-    mail = request.data['mail']
-    if mail in emails:
-        code = str(random.randint(1000,9999))
-        print(mail)
-        send_mail('Password Recovery', f'Ваш код для восстановления пароля: {code}\nПочта: {mail}', settings.EMAIL_HOST_USER,
-                  [mail], fail_silently=False)
-        return Response(json.dumps({
-            'status': 'success',
-            'code': code
-        }), status=status.HTTP_201_CREATED)
-    else:
-        return Response(json.dumps({
-            'status': 'wrong'
-        }), status=status.HTTP_201_CREATED)
+    """
+    Sending email to confirm the email
+    """
+    code = try_send_confirm_email_code(request.data['mail'])
+
+    return Response(json.dumps({
+        'status': 'success' if code else 'wrong',
+        'code': code
+    }), status=status.HTTP_201_CREATED if code else status.HTTP_200_OK)

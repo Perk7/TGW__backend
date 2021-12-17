@@ -10,4 +10,3 @@ class CustomAuth(AbstractUser):
 	@property
 	def isauthenticated(self):
 		return True
-

@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.http import HttpResponse
-
 from django.db import transaction
 import random
 from django.contrib.auth import login, logout

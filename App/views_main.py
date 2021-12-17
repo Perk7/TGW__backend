@@ -28,7 +28,7 @@ def excel(request):
     my_wb_obj = openpyxl.load_workbook(path)
     sheet_ranges = my_wb_obj.active
 
-    for model in (Regions, Squad, Country, Relations, Contracts):
+    for model in (Regions, Contracts, Squad, Country, Relations):
         items = model.objects.all()
         if items:
             items.delete()
@@ -203,7 +203,7 @@ def excel(request):
         start += 1
 
     # Squad
-    for x in sheet_ranges['B':'BJ']:
+    for x in sheet_ranges['B':'BH']:
         country = get_object_or_404(Country, name=x[166].value)
 
         obj = Squad(
@@ -221,7 +221,7 @@ def excel(request):
             place = str(x[168].value),
         )
 
-        obj.save()
+        obj.save()    
 
     # Contracts
     for x in sheet_ranges['B':'EJ']:

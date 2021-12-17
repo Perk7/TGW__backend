@@ -21,8 +21,8 @@ class Regions(Abstract_Regions):
 		return self.name
 
 	class Meta:
-	    verbose_name = 'Default Регион'
-	    verbose_name_plural = 'Default Регионы'
+		verbose_name = 'Default Регион'
+		verbose_name_plural = 'Default Регионы'
 
 class Country(Abstract_Country):
 	regions = models.ManyToManyField(Regions)
@@ -47,19 +47,22 @@ class Country(Abstract_Country):
 		return self.name
 
 	class Meta:
-	    verbose_name = 'Default Страна'
-	    verbose_name_plural = 'Default Страны'
+		verbose_name = 'Default Страна'
+		verbose_name_plural = 'Default Страны'
 
 class Relations(Abstract_Relations):
 
 	pair = models.ManyToManyField(Country)
 
 	def __str__(self):
-		return self.pair.all()[0].name + '-' + self.pair.all()[1].name + ' : ' + str(self.value)
+		if len(self.pair.all()) == 2:
+			return self.pair.all()[0].name + '-' + self.pair.all()[1].name + ' : ' + str(self.value)
+		else:
+			return 'Relation :' + str(self.value)
 
 	class Meta:
-	    verbose_name = 'Default Отношение'
-	    verbose_name_plural = 'Default Отношения'
+		verbose_name = 'Default Отношение'
+		verbose_name_plural = 'Default Отношения'
 
 class Contracts(Abstract_Contracts):
 
@@ -69,8 +72,8 @@ class Contracts(Abstract_Contracts):
 		return self.pair.all()[0].name + '-' + self.pair.all()[1].name + ' : ' + self.con_type
 
 	class Meta:
-	    verbose_name = 'Default Договор'
-	    verbose_name_plural = 'Default Договора'
+		verbose_name = 'Default Договор'
+		verbose_name_plural = 'Default Договора'
 
 class Squad(Abstract_Squad):
 
@@ -80,5 +83,5 @@ class Squad(Abstract_Squad):
 		return self.country.name + ' : ' + str(self.summ())
 
 	class Meta:
-	    verbose_name = 'Default Отряд'
-	    verbose_name_plural = 'Default Отряды'
+		verbose_name = 'Default Отряд'
+		verbose_name_plural = 'Default Отряды'

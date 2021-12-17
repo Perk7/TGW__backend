@@ -1,4 +1,6 @@
 from django.db import models
+import datetime 
+from django.utils.timezone import get_current_timezone, now
 from App.models_abstract import Abstract_Regions, Abstract_Country, Abstract_Contracts, Abstract_Relations, Abstract_Squad
 
 class SaveRegions(Abstract_Regions):
@@ -69,57 +71,57 @@ class SaveCountry(Abstract_Country):
 		return b
 
 class SaveCountryAI(models.Model):
-    name = models.CharField(max_length=20, default='Default country')
-    regions = models.ManyToManyField(SaveRegions)
-    capital = models.OneToOneField(SaveRegions, on_delete=models.CASCADE, related_name='AI_region_capital')
-    identify = models.CharField(max_length=50, default='empire', blank=True)
+	name = models.CharField(max_length=20, default='Default country')
+	regions = models.ManyToManyField(SaveRegions)
+	capital = models.OneToOneField(SaveRegions, on_delete=models.CASCADE, related_name='AI_region_capital')
+	identify = models.CharField(max_length=50, default='empire', blank=True)
 
-    def get_population(self):
-    	summ = 0
-    	for i in self.regions.all():
-       		summ += i.population
-    	return summ
+	def get_population(self):
+		summ = 0
+		for i in self.regions.all():
+			summ += i.population
+		return summ
 
-    def get_area(self):
-    	summ = 0
-    	for i in self.regions.all():
-    		summ += i.area
-    	return summ
+	def get_area(self):
+		summ = 0
+		for i in self.regions.all():
+			summ += i.area
+		return summ
 
-    def get_avg_salary(self):
-    	summ = 0
-    	for i in self.regions.all():
-    		summ += i.avg_salary
-    	return summ / len(self.regions.all())
+	def get_avg_salary(self):
+		summ = 0
+		for i in self.regions.all():
+			summ += i.avg_salary
+		return summ / len(self.regions.all())
 
-    def get_infrastructure(self):
-    	summ = 0
-    	for i in self.regions.all():
-    		summ += i.infrastructure
-    	return summ / len(self.regions.all())
+	def get_infrastructure(self):
+		summ = 0
+		for i in self.regions.all():
+			summ += i.infrastructure
+		return summ / len(self.regions.all())
 
-    education_quality = models.FloatField(default=0.6)
+	education_quality = models.FloatField(default=0.6)
 
-    support = models.FloatField(default=0.6)
-    stability = models.FloatField(default=0.6)
+	support = models.FloatField(default=0.6)
+	stability = models.FloatField(default=0.6)
 
-    government = models.CharField(max_length=7, default='m,t,a,p')
-    area_format = models.CharField(max_length=7, default='c,p,l,e')
+	government = models.CharField(max_length=7, default='m,t,a,p')
+	area_format = models.CharField(max_length=7, default='c,p,l,e')
 
-    army_quality = models.FloatField(default=0.5)
+	army_quality = models.FloatField(default=0.5)
 
-    tax_physic = models.CharField(max_length=7, default='d,z')
-    tax_jurid = models.CharField(max_length=7, default='p,i,g,e')
+	tax_physic = models.CharField(max_length=7, default='d,z')
+	tax_jurid = models.CharField(max_length=7, default='p,i,g,e')
 
-    def __str__(self):
-    	return self.name
+	def __str__(self):
+		return self.name
 
-    class Meta:
-    	verbose_name = 'Save ИИ_Страна'
-    	verbose_name_plural = 'Save ИИ_Страны'
+	class Meta:
+		verbose_name = 'Save ИИ_Страна'
+		verbose_name_plural = 'Save ИИ_Страны'
 
-    def as_json(self):
-    	return dict(
+	def as_json(self):
+		return dict(
     		name=self.name,
     		regions=[SaveRegions.objects.filter(id=i.id)[0].as_json() for i in list(self.regions.all())],
     		capital=self.capital.as_json(),
@@ -243,12 +245,10 @@ class CountryBonus(models.Model):
 
     infrastructure = models.FloatField(default=0)
     stone_road = models.FloatField(default=0)
-    pave_road = models.FloatField(default=0)
     trash = models.FloatField(default=0)
     port = models.FloatField(default=0)
     delivery_box = models.FloatField(default=0)
     delivery_people = models.FloatField(default=0)
-    aqueducs = models.FloatField(default=0)
 
     alchemy = models.FloatField(default=0)
     magic = models.FloatField(default=0)
@@ -257,10 +257,8 @@ class CountryBonus(models.Model):
 
     education_quality = models.FloatField(default=0)
     education_access = models.FloatField(default=0)
-    schools = models.FloatField(default=0)
-    universities = models.FloatField(default=0)
 
-    army_quality = models.FloatField(default=0)
+    army_quality = models.FloatField(default=0.4)
 
     industry_blackmetall = models.FloatField(default=0)
     industry_colormetall = models.FloatField(default=0)
@@ -291,19 +289,22 @@ class CountryBonus(models.Model):
     kazna = models.IntegerField(default=10_000_000)
 
     class Meta:
-    	    verbose_name = 'Save Баффы'
-    	    verbose_name_plural = 'Save Баффы'
+        verbose_name = 'Save Баффы'
+        verbose_name_plural = 'Save Баффы'
 
     def as_json(self):
-    		a = self.__dict__
-    		b = {}
-    		for i in a:
-    			if i != '_state':
-    				b[i] = a[i]
-    		return b
+        a = self.__dict__
+        b = {}
+        for i in a:
+            if i != '_state':
+                b[i] = a[i]	
+        return b
+
+def getTime():
+	return datetime.datetime.utcnow().replace(tzinfo=get_current_timezone())
 
 class StartGame(models.Model):
-	save_date = models.DateTimeField(auto_now=True)
+	save_date = models.DateTimeField(default=datetime.datetime.now)
 
 	buffs = models.OneToOneField(CountryBonus, on_delete=models.CASCADE)
 
@@ -319,8 +320,8 @@ class StartGame(models.Model):
 		return str(self.country) + ' ' + str(self.save_date)
 
 	class Meta:
-	    verbose_name = 'Save'
-	    verbose_name_plural = 'Saves'
+		verbose_name = 'Save'
+		verbose_name_plural = 'Saves'
 
 	def as_json(self):
 		return dict(
