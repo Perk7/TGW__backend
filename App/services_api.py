@@ -11,7 +11,20 @@ from django.contrib.auth import login
 from .models_auth import CustomAuth
 from django.contrib.auth.hashers import check_password
 
-from typing import Union
+from typing import Literal, Union
+
+def get_repr_government(type: Literal['O', 'M', 'D', 'R']) -> str:
+    '''
+    Return repr format of country government
+    '''
+    types = {
+        'O': 'Ограниченная монархия',
+        'M': 'Абсолютная монархия',
+        'D':  'Однопартийная диктатура',
+        'R': 'Республика',
+    }
+
+    return types[type]
 
 def change_keys_to_values(country: dict) -> dict:
     """
@@ -35,14 +48,7 @@ def change_keys_to_values(country: dict) -> dict:
     country['fields']['regions'] = regions
 
     govern = country['fields']['government'][0]
-    if govern == 'O':
-        country['fields']['government'] = 'Ограниченная монархия'
-    elif govern == 'M':
-        country['fields']['government'] = 'Абсолютная монархия'
-    elif govern == 'D':
-        country['fields']['government'] = 'Однопартийная диктатура'
-    elif govern == 'R':
-        country['fields']['government'] = 'Республика'
+    country['fields']['government'] = get_repr_government(govern)
 
     return country
 

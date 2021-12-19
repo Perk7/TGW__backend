@@ -1,5 +1,6 @@
 import datetime
 import random
+from typing import Union, Literal
 
 from django.core.mail import send_mail
 
@@ -10,6 +11,23 @@ from .models_auth import CustomAuth
 from django.shortcuts import get_object_or_404
 
 from django.contrib.auth.hashers import check_password
+
+mail_types = Literal['Password Recovery', 'Verification Code']
+def send_mail_with_code(mail: str, type: mail_types) -> int:
+    """
+    Sending mail to user with verification code
+    """
+    code = str(random.randint(1000,9999))
+
+    hash_msg = {
+        'Password Recovery': f'\nВаш код для восстановления пароля: {code}\nПочта: {mail}',
+        'Verification Code': f'\nПочта: {mail}\nВаш код подтверждения электронной почты: {code}\n.'
+    }
+
+    send_mail(type, datetime.datetime.now() + hash_msg[type], settings.EMAIL_HOST_USER,
+              [mail], fail_silently=False)
+
+    return code
 
 def check_email_for_uniq(mail: str) -> str:
     """
@@ -23,10 +41,7 @@ def check_email_for_uniq(mail: str) -> str:
     emails = [i.email for i in users]
     
     if mail not in emails:
-        code = str(random.randint(1000,9999))
-        send_mail('Verification Code', f'{datetime.datetime.now()}\nПочта: {mail}\nВаш код подтверждения электронной почты: {code}\n.', 
-                settings.EMAIL_HOST_USER,
-                  [mail], fail_silently=False)
+        code = send_mail_with_code(mail, 'Verification Code')
         return code
     else:
         return ''
@@ -86,9 +101,7 @@ def try_send_confirm_email_code(mail: str) -> str:
 
     emails = [i.email for i in users]
     if mail in emails:
-        code = str(random.randint(1000,9999))
-        send_mail('Password Recovery', f'Ваш код для восстановления пароля: {code}\nПочта: {mail}', settings.EMAIL_HOST_USER,
-                  [mail], fail_silently=False)
+        code = send_mail_with_code(mail, 'Password Recovery')
     return code
 
 def check_condition_for_login(authorizied: bool, data: dict) -> dict:

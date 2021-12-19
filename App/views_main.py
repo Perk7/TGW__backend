@@ -11,7 +11,7 @@ from .models_saves import *
 def index(request):
 	return render(request, 'index.html')
 
-def clear(request):
+def clear(_):
     SaveSquad.objects.all().delete()
     SaveSquadAI.objects.all().delete()
     SaveContracts.objects.all().delete()
@@ -22,7 +22,7 @@ def clear(request):
 
     StartGame.objects.all().delete()
 
-def excel(request):
+def excel(_):
     base_dir = settings.MEDIA_ROOT
     path = os.path.join(base_dir, "excel.xlsx")
     my_wb_obj = openpyxl.load_workbook(path)
@@ -40,12 +40,7 @@ def excel(request):
                         name = x[0].value,
                         capital = x[1].value,
                         population = x[2].value,
-                        area = x[3].value,
-                        universities = x[4].value,
-                        schools = x[5].value,
-                        aqueducs = x[6].value,
                         stone_road = x[7].value,
-                        pave_road = x[8].value,
                         poverty = x[9].value,
                         unemployment = x[10].value,
                         avg_salary = x[11].value,
@@ -136,7 +131,6 @@ def excel(request):
                         capital = get_object_or_404(Regions, capital=x[66].value),
                         identify = x[68].value,
                         education_quality = x[69].value,
-                        education_avail = x[70].value,
                         alchemy = x[71].value,
                         magic = x[72].value,
                         science = x[73].value,
@@ -148,9 +142,7 @@ def excel(request):
                         government = x[79].value,
                         area_format = x[80].value,
 
-                        maternal_capital = x[82].value,
                         allowance_unemploy = x[83].value,
-                        allowance_disability = x[84].value,
                         pension_m = x[85].value,
                         pension_w = x[86].value,
                         avg_pension = x[87].value,
