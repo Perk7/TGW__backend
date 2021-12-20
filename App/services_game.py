@@ -1,7 +1,7 @@
 from django.db.utils import OperationalError
 from django.shortcuts import get_object_or_404
 from Game.TGW.App.models_auth import CustomAuth
-from typing import Union
+from typing import Dict, List, Literal, Union
 
 from .models_saves import *
 from .models_main import *
@@ -9,57 +9,32 @@ from .models_main import *
 def round_to_half(x):
     return round(x*2)/2
 
-def create_new_game(user: str, country: str) -> Union(StartGame | dict):
+def make_save_regions(regions: List[Regions]) -> List[SaveRegions]:
     """
-    Creaitng new StartGame object model for user with needed country
+    Copy Regions to SaveRegions and return arr of its regions
     """
-    try:
-        country = get_object_or_404(Country, identify=country)
-        user = get_object_or_404(CustomAuth, username=user)
-    except OperationalError:
-        return {}
-
-    saves = {
-        'regions' : [],
-        'ai-country' : [],
-        'country' : [],
-        'contracts' : [],
-        'squads' : [],
-        'relations' : [],
-    }
-
-    for coun in Country.objects.exclude(identify=country):
-        saves['ai-country'].append(coun)
-
-    saves['country'].append(country)
-
-    for i in [ [Regions, 'regions'], [Contracts, 'contracts'], [Relations, 'relations'], [Squad, 'squad'] ]:
-        for obj in i[0].objects.all():
-            saves[i[1]].append(obj)
-
-    edited = {
-        'regions' : [],
-        'ai-country' : [],
-        'relations' : [],
-        'contracts' : [],
-        'squad' : [],
-        'ai-squad' : [],
-    }
-
-    for reg in saves['regions']:
+    edited = []
+    for reg in regions:
         reg_dict = reg.__dict__
         del reg_dict['_state']
         del reg_dict['id']
 
         obj = SaveRegions(**reg_dict)
         obj.save()
-        edited['regions'].append(obj)
+        edited.append(obj)
 
-    for con in saves['ai-country']:
+    return edited
+
+def make_save_ai_countries(countries: List[Country], regions: List[SaveRegions]) -> List[SaveCountryAI]:
+    """
+    Copy Countries to SaveCountryAI and return arr of its countries
+    """
+    edited = []
+    for con in countries:
         regs = con.regions.all()
 
         capital = None
-        for i in edited['regions']:
+        for i in regions:
             if con.capital.name == i.name:
                 capital = i
 
@@ -78,71 +53,99 @@ def create_new_game(user: str, country: str) -> Union(StartGame | dict):
 
         for i in regs:
             reg = None
-            for r in edited['regions']:
+            for r in regions:
                 if i.name == r.name:
                     reg = r
             ai.regions.add(reg.id)
 
-        edited['ai-country'].append(ai)
+        edited.append(ai)
 
-    for coun in saves['country']:
-        coun_dict = coun.__dict__
-        del coun_dict['_state']
-        del coun_dict['id']
+    return edited
 
-        a = get_object_or_404(Country, name=coun.name)
-        regs = a.regions.all()
+def make_save_country(country: Country, regions: List[SaveRegions]) -> SaveCountry:
+    """
+    Copy Country to SaveCountry and return arr of it object
+    """
+    coun_dict = country.__dict__
+    del coun_dict['_state']
+    del coun_dict['id']
 
-        capital = None
-        for i in edited['regions']:
-            if a.capital.name == i.name:
-                capital = i
-        coun_dict['capital_id'] = capital.id
+    a = get_object_or_404(Country, name=country.name)
+    regs = a.regions.all()
 
-        obj = SaveCountry(**coun_dict)
-        obj.save()
+    capital = None
+    for i in regions:
+        if a.capital.name == i.name:
+            capital = i
+    coun_dict['capital_id'] = capital.id
 
-        for i in regs:
-            reg = None
-            for r in edited['regions']:
-                if i.name == r.name:
-                    reg = r
-            obj.regions.add(reg.id)
+    obj = SaveCountry(**coun_dict)
+    obj.save()
 
-        edited['country'] = obj
+    for i in regs:
+        reg = None
+        for r in regions:
+            if i.name == r.name:
+                reg = r
+        obj.regions.add(reg.id)
 
-    for reg in saves['relations']:
+    return obj
+
+def make_save_relations(relations: List[Relations], country: SaveCountry, ai_countries: List[SaveCountryAI]) -> List[SaveRelations]:
+    """
+    Copy Relations to SaveRelations and return arr of its countries
+    """
+    edited = []
+    for reg in relations:
         f = reg.pair.all()
 
-        obj = SaveRelations(value=reg.value, uniq=edited['country'])
+        obj = SaveRelations(value=reg.value, uniq=country)
         obj.save()
 
         for i in f:
-            if i.name == edited['country'].name:
-                obj.uniq = SaveCountry.objects.get(id=edited['country'].id)
-            for d in edited['ai-country']:
+            if i.name == country.name:
+                obj.uniq = SaveCountry.objects.get(id=country.id)
+            for d in ai_countries:
                 if i.name == d.name:
                     obj.pair.add(d.id)
-        edited['relations'].append(obj)
+        edited.append(obj)
 
-    for reg in saves['contracts']:
+    return edited
+
+def make_save_contracts(contracts: List[Contracts], country: SaveCountry, ai_countries: List[SaveCountryAI]) -> List[SaveContracts]:
+    """
+    Copy Contracts to SaveContracts and return arr of its countries
+    """
+    edited = []
+    for reg in contracts:
         f = reg.pair.all()
 
-        obj = SaveContracts(con_type=reg.con_type, uniq=edited['country'], priority=reg.priority, deadline=reg.deadline)
+        obj = SaveContracts(con_type=reg.con_type, uniq=country, priority=reg.priority, deadline=reg.deadline)
         obj.save()
 
         for i in f:
-            if i.name == edited['country'].name:
-                obj.uniq = SaveCountry.objects.get(id=edited['country'].id)
-            for d in edited['ai-country']:
+            if i.name == country.name:
+                obj.uniq = SaveCountry.objects.get(id=country.id)
+            for d in ai_countries:
                 if i.name == d.name:
                     obj.pair.add(d.id)
-        edited['contracts'].append(obj)
+        edited.append(obj)
 
-    for reg in saves['squads']:
-        if reg.country.name == edited['country'].name:
+    return edited
+
+type_squads_name = Literal['ai', 'own']
+type_squads_arr = Union(List[SaveSquad] | List[SaveSquadAI])
+def make_save_squads(squads: List[Squad], country: SaveCountry, ai_countries: List[SaveCountryAI]) -> Dict[type_squads_name, type_squads_arr]:
+    """
+    Copy Squads to SaveSquads and SaveSquadsAI and return dict of own and ai objects
+    """
+    own_squads = []
+    ai_squads = []
+
+    for reg in squads:
+        if reg.country.name == country.name:
             obj = SaveSquad(
-                country = edited['country'],
+                country = country,
                 pechot_quan = reg.pechot_quan,
                 archer_quan = reg.archer_quan,
                 cavallery_quan = reg.cavallery_quan,
@@ -152,9 +155,9 @@ def create_new_game(user: str, country: str) -> Union(StartGame | dict):
                 place = reg.place
             )
             obj.save()
-            edited['squad'].append(obj)
+            own_squads.append(obj)
         else:
-            for i in edited['ai-country']:
+            for i in ai_countries:
                 if reg.country.name == i.name:
                     coun = i
                     obj = SaveSquadAI(
@@ -174,7 +177,52 @@ def create_new_game(user: str, country: str) -> Union(StartGame | dict):
                         obj.id = 1
 
                     obj.save()
-                    edited['ai-squad'].append(obj)
+                    ai_squads.append(obj)
+    
+    return {
+        'own': own_squads,
+        'ai': ai_squads
+    }
+
+def create_new_game(user: str, country: str) -> Union(StartGame | dict):
+    """
+    Creaitng new StartGame object model for user with needed country
+    """
+    try:
+        country = get_object_or_404(Country, identify=country)
+        user = get_object_or_404(CustomAuth, username=user)
+    except OperationalError:
+        return {}
+
+    saves = {
+        'regions' : [],
+        'ai-country' : [coun for coun in Country.objects.exclude(identify=country)],
+        'country' : country,
+        'contracts' : [],
+        'squads' : [],
+        'relations' : [],
+    }
+
+    for i in [ [Regions, 'regions'], [Contracts, 'contracts'], [Relations, 'relations'], [Squad, 'squad'] ]:
+        for obj in i[0].objects.all():
+            saves[i[1]].append(obj)
+
+    edited = {
+        'regions' : make_save_regions(saves['regions']),
+        'ai-country' : [],
+        'relations' : [],
+        'contracts' : [],
+        'squad' : [],
+        'ai-squad' : [],
+    }
+
+    edited['ai-country'] = make_save_ai_countries(saves['ai-country'], edited['regions'])
+    edited['country'] = make_save_country(saves['country'], edited['regions'])  
+    edited['relations'] = make_save_relations(saves['relations'], edited['country'], edited['ai-country'])
+    edited['contracts'] = make_save_contracts(saves['contracts'], edited['country'], edited['ai-country'])
+    
+    squads = make_save_squads(saves['squads'], edited['country'], edited['ai-country'])
+    edited['squad'], edited['ai-squad'] = squads['own'], squads['ai']
 
     edited['buffs'] = CountryBonus(budget_infrastructure = round_to_half((edited['country'].export_trash +
                                                             edited['country'].get_pave_road() +
@@ -263,11 +311,7 @@ def save_current_game(user: str, store: dict) -> Union(dict | StartGame):
     save.buffs.save()
 
     # Regions
-    for i in store['country']['regions']:
-        reg = SaveRegions(**i)
-        reg.save()
-        save.regions.add(reg)
-    for a in store['country_ai']:
+    for a in store['country_ai'] + store['country']:
         for i in a['regions']:
            reg = SaveRegions(**i)
            reg.save()
@@ -309,8 +353,8 @@ def save_current_game(user: str, store: dict) -> Union(dict | StartGame):
         country.save()
         save.country_ai.add(country)
 
-    # Relations
-    for i in store['relations']:
+    # Relations and contracts
+    for i in store['relations'] + store['contracts']:
         coun = save.country
         pair = []
         for f in i['pair']:
@@ -319,33 +363,16 @@ def save_current_game(user: str, store: dict) -> Union(dict | StartGame):
         del i['pair']
         del i['uniq']
 
-        reg = SaveRelations(**i)
+        class_type = [SaveRelations, 'relations'] if i < len(store['relations']) else [SaveContracts, 'contracts']
+
+        reg = class_type[0](**i)
         reg.uniq = coun
         reg.save()
         for f in pair:
             reg.pair.add(f)
         reg.save()
 
-        save.relations.add(reg)
-
-    # Contracts
-    for i in store['contracts']:
-        coun = save.country
-        pair = []
-        for f in i['pair']:
-            con = get_object_or_404(save.country_ai.all(), identify=f)
-            pair.append(con)
-        del i['pair']
-        del i['uniq']
-
-        reg = SaveContracts(**i)
-        reg.uniq = coun
-        reg.save()
-        for f in pair:
-            reg.pair.add(f)
-        reg.save()
-
-        save.contracts.add(reg)
+        save.__getattribute__(class_type[1]).add(reg)
 
     # Squad_ai
     for i in store['squad_ai']:
