@@ -35,7 +35,7 @@ def excel(_):
 
     # Regions
     for x in sheet_ranges['C':'CA']:
-        print()
+        print(x[0].value)
         obj = Regions(
                         name = x[0].value,
                         capital = x[1].value,

@@ -2,8 +2,8 @@ from django.db import models
 
 class Abstract_Regions(models.Model):
     # Main properties
-    name = models.CharField(max_length=20, default='Default region')
-    capital = models.CharField(max_length=20, default='Default city')
+    name = models.CharField(max_length=30, default='Default region')
+    capital = models.CharField(max_length=30, default='Default city')
     population = models.IntegerField(default=500_000)
     stone_road = models.FloatField(default=0.4)
     poverty = models.FloatField(default=0.2)
@@ -93,7 +93,7 @@ class Abstract_Regions(models.Model):
 
 class Abstract_Country(models.Model):
     # Main properties
-    name = models.CharField(max_length=20, default='Default country')
+    name = models.CharField(max_length=30, default='Default country')
     identify = models.CharField(max_length=50, default='empire', blank=True)
 
     def get_population(self):

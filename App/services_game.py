@@ -1,6 +1,6 @@
 from django.db.utils import OperationalError
 from django.shortcuts import get_object_or_404
-from Game.TGW.App.models_auth import CustomAuth
+from .models_auth import CustomAuth
 from typing import Dict, List, Literal, Union
 
 from .models_saves import *
@@ -134,7 +134,7 @@ def make_save_contracts(contracts: List[Contracts], country: SaveCountry, ai_cou
     return edited
 
 type_squads_name = Literal['ai', 'own']
-type_squads_arr = Union(List[SaveSquad] | List[SaveSquadAI])
+type_squads_arr = Union[List[SaveSquad], List[SaveSquadAI]]
 def make_save_squads(squads: List[Squad], country: SaveCountry, ai_countries: List[SaveCountryAI]) -> Dict[type_squads_name, type_squads_arr]:
     """
     Copy Squads to SaveSquads and SaveSquadsAI and return dict of own and ai objects
@@ -184,7 +184,7 @@ def make_save_squads(squads: List[Squad], country: SaveCountry, ai_countries: Li
         'ai': ai_squads
     }
 
-def create_new_game(user: str, country: str) -> Union(StartGame | dict):
+def create_new_game(user: str, country: str) -> Union[StartGame, dict]:
     """
     Creaitng new StartGame object model for user with needed country
     """
@@ -294,7 +294,7 @@ def load_game_by_time(user: str, time: str) -> StartGame:
 
     return save
 
-def save_current_game(user: str, store: dict) -> Union(dict | StartGame):
+def save_current_game(user: str, store: dict) -> Union[dict, StartGame]:
     """
     Saving game (Update having fields object)
     """

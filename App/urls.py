@@ -15,7 +15,7 @@ urlpatterns = [
     url('api/saved_games/', views_api.get_saved_games_of_user),
     url('api/delete_save/', views_api.delete_save_by_time),
 
-    url('auth/registration', views_auth.registration),
+    url('auth/registration', views_auth.registration_in_system),
     url('auth/check_mail', views_auth.check_email),
     url('auth/password_change', views_auth.recovery_password),
     url('auth/login', views_auth.try_login),

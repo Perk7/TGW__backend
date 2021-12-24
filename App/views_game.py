@@ -27,6 +27,7 @@ def load_game(request):
     """
     Load having game by time
     """
+    
     data = request.data
     
     save = load_game_by_time(data['user'], data['time'])
