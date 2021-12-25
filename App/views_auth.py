@@ -7,9 +7,10 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .services_auth import *
+from .decorators_views import check_api_key
 
 @api_view(['POST'])
-def check_email (request):
+def check_email(request):
     """
     Check having email in db
     """
@@ -51,6 +52,7 @@ def try_login(request):
     }), status=status.HTTP_201_CREATED if result['status'] == 'success' else status.HTTP_200_OK)
 
 @api_view(['GET'])
+@check_api_key
 def try_logout(request):
     """
  	Logout user from system

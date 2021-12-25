@@ -12,6 +12,7 @@ from .models_main import Country
 from django.db.utils import OperationalError
 
 from .services_api import *
+from .decorators_views import check_api_key
 
 @api_view(['GET'])
 def get_all_default_countries(_):
@@ -28,6 +29,7 @@ def get_all_default_countries(_):
     return Response({}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 @api_view(['POST'])
+@check_api_key
 def get_saved_games_of_user(request):
     """
     Get all saves of user with authorization
@@ -48,6 +50,7 @@ def get_saved_games_of_user(request):
     return Response(data, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
+@check_api_key
 def delete_save_by_time(request):
     """
     Delete save by data from request

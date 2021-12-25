@@ -1,6 +1,6 @@
 import datetime
 import random
-from typing import Union, Literal
+from typing import Literal
 
 from django.core.mail import send_mail
 

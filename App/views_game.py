@@ -6,9 +6,11 @@ import json
 from rest_framework.response import Response
 from rest_framework import status
 
+from .decorators_views import check_api_key
 from .services_game import *
 
 @api_view(['POST'])
+@check_api_key
 @transaction.atomic
 def start_game(request):
     """
@@ -23,6 +25,7 @@ def start_game(request):
     return Response(data, status=status.HTTP_201_CREATED if new_game else status.HTTP_204_NO_CONTENT)
 
 @api_view(['POST'])
+@check_api_key
 def load_game(request):
     """
     Load having game by time
@@ -37,6 +40,7 @@ def load_game(request):
     return Response(data, status=status.HTTP_201_CREATED if save else status.HTTP_204_NO_CONTENT)
 
 @api_view(['POST'])
+@check_api_key
 @transaction.atomic
 def save_game(request):
     """
