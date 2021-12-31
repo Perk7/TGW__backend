@@ -5,11 +5,7 @@ from rest_framework import status
 import json
 from django.core import serializers
 
-from django.shortcuts import get_object_or_404
-from .models_auth import CustomAuth
 from .models_main import Country
-
-from django.db.utils import OperationalError
 
 from .services_api import *
 from .decorators_views import check_api_key
@@ -56,15 +52,11 @@ def delete_save_by_time(request):
     Delete save by data from request
     """
     req_data = request.data
-    try:
-        user = get_object_or_404(CustomAuth, username=req_data['user'])
-    except OperationalError:
-        return Response({}, status=status.HTTP_401_UNAUTHORIZED)
-
+    user = get_user_by_name(req_data['user'])
     save = get_save_by_save_time(user, req_data)
 
-    if not save:
-        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+    if not (user and save):
+        return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
     user = delete_save_by_object(user, save)
 
