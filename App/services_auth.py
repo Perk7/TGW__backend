@@ -70,7 +70,7 @@ def registrate_with_values(data: dict) -> dict:
     except OperationalError:
         pass
 
-    return hash
+    return logs
 
 def change_password_after_confirm_mail(data: dict) -> bool:
     '''

@@ -108,3 +108,13 @@ def delete_save_by_object(user: CustomAuth, save: StartGame) -> CustomAuth:
     save.delete()
 
     return user
+
+def get_user_by_name(username: str) -> Union[CustomAuth, bool]:
+    """
+    try to find CustomAuth object by username
+    """
+    try:
+        user = get_object_or_404(CustomAuth, username=username)
+        return user
+    except OperationalError:
+        return False

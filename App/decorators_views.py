@@ -28,9 +28,9 @@ def check_api_key(func: Callable) -> Callable:
         real_login = login[::-1]
         if real_login not in [i.username for i in CustomAuth.objects.all()]:
             return Response(json.dumps({
-                'status': False,
-                'desc': 'Not authorizied'
-            }), status=status.HTTP_401_NOT_AUTHORIZIED)
+                    'status': False,
+                    'desc': "You are not authorizied"
+                }), status=status.HTTP_401_UNAUTHORIZED)
 
         secret_key = config['SECRET_KEY']
 
