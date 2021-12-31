@@ -31,6 +31,10 @@ def check_api_key(func: Callable) -> Callable:
                     'status': False,
                     'desc': "You are not authorizied"
                 }), status=status.HTTP_401_UNAUTHORIZED)
+<<<<<<< HEAD
+=======
+
+>>>>>>> ef773f4cd52dc091ea7ebe91f15796ec5376bd8c
         secret_key = config['SECRET_KEY']
 
         str_for_hash = secret_key + ':' +  real_login + ':' + code 
