@@ -80,7 +80,7 @@ def login_with_request_data(request: HttpRequest, req_data: dict) -> bool:
 
 def get_save_by_save_time(user: CustomAuth, req_data: dict) -> Union[StartGame, bool]:
     """
-    
+    Return StartGame object by time if exist, else False
     """
     save_time = req_data['time']
     save_time = ' '.join(save_time.split('T'))[0:-1]

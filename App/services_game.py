@@ -203,7 +203,7 @@ def create_new_game(user: str, country: str) -> Union[StartGame, dict]:
         'relations' : [],
     }
 
-    for i in [ [Regions, 'regions'], [Contracts, 'contracts'], [Relations, 'relations'], [Squad, 'squad'] ]:
+    for i in [ [Regions, 'regions'], [Contracts, 'contracts'], [Relations, 'relations'], [Squad, 'squads'] ]:
         for obj in i[0].objects.all():
             saves[i[1]].append(obj)
 
@@ -225,12 +225,12 @@ def create_new_game(user: str, country: str) -> Union[StartGame, dict]:
     edited['squad'], edited['ai-squad'] = squads['own'], squads['ai']
 
     edited['buffs'] = CountryBonus(budget_infrastructure = round_to_half((edited['country'].export_trash +
-                                                            edited['country'].get_pave_road() +
+                                                            edited['country'].get_stone_road() +
                                                             edited['country'].get_infrastructure() +
                                                             edited['country'].get_cargo_ship() +
                                                             edited['country'].get_people_ship())*2)/10,
                                    budget_education = round_to_half((edited['country'].education_quality +
-                                                      edited['country'].education_avail)*5)/10,
+                                                      edited['country'].education_quality)*5)/10,
                                    budget_research = round_to_half((edited['country'].alchemy +
                                                       edited['country'].magic +
                                                       edited['country'].technology +
@@ -248,8 +248,8 @@ def create_new_game(user: str, country: str) -> Union[StartGame, dict]:
     save_block.save()
 
     for i in [ 'regions', 'relations', 'squad', 'contracts' ]:
-        for i in edited[i]:
-            save_block.__getattribute__(i).add(i.id)
+        for x in edited[i]:
+            save_block.__getattribute__(i).add(x.id)
 
     for i in edited['ai-country']:
         save_block.country_ai.add(i.id)
@@ -269,11 +269,11 @@ def find_saved_game_by_time(user: CustomAuth, time: str) -> StartGame:
     """
     Parsing time format and find needing StartGame object
     """
-    time = ' '.join(time.split('T'))[0:-1]
+    time = ' '.join(time.split('T'))[0:-7]
 
     save = None
     for i in user.saves.all():
-        if time == str(i.save_date)[0:-9]:
+        if time == str(i.save_date)[0:-7]:
             save = i
     
     return save
@@ -309,9 +309,9 @@ def save_current_game(user: str, store: dict) -> Union[dict, StartGame]:
     # Buffs
     save.buffs = CountryBonus(**store['buffs'])
     save.buffs.save()
-
+    
     # Regions
-    for a in store['country_ai'] + store['country']:
+    for a in store['country_ai'] + [store['country']]:
         for i in a['regions']:
            reg = SaveRegions(**i)
            reg.save()
@@ -354,18 +354,19 @@ def save_current_game(user: str, store: dict) -> Union[dict, StartGame]:
         save.country_ai.add(country)
 
     # Relations and contracts
-    for i in store['relations'] + store['contracts']:
+    cur_arr = store['relations'] + store['contracts']
+    for i in range(len(cur_arr)):
         coun = save.country
         pair = []
-        for f in i['pair']:
+        for f in cur_arr[i]['pair']:
             con = get_object_or_404(save.country_ai.all(), identify=f)
             pair.append(con)
-        del i['pair']
-        del i['uniq']
+        del cur_arr[i]['pair']
+        del cur_arr[i]['uniq']
 
         class_type = [SaveRelations, 'relations'] if i < len(store['relations']) else [SaveContracts, 'contracts']
 
-        reg = class_type[0](**i)
+        reg = class_type[0](**cur_arr[i])
         reg.uniq = coun
         reg.save()
         for f in pair:

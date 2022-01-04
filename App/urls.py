@@ -14,12 +14,12 @@ urlpatterns = [
     path('api/saved_games/', views_api.get_saved_games_of_user),
     path('api/delete_save/', views_api.delete_save_by_time),
 
-    path('auth/registration', views_auth.registration_in_system),
-    path('auth/check_mail', views_auth.check_email),
-    path('auth/password_change', views_auth.recovery_password),
-    path('auth/login', views_auth.try_login),
-    path('auth/logout', views_auth.try_logout),
-    path('auth/recovery_password_code', views_auth.recovery_password_code),
+    path('auth/registration/', views_auth.registration_in_system),
+    path('auth/check_mail/', views_auth.check_email),
+    path('auth/password_change/', views_auth.recovery_password),
+    path('auth/login/', views_auth.try_login),
+    path('auth/logout/', views_auth.try_logout),
+    path('auth/recovery_password_code/', views_auth.recovery_password_code),
 
     path('game/start_game/', views_game.start_game, name='start_game'),
     path('game/load_game/', views_game.load_game, name='load_game'),

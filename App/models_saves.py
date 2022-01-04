@@ -71,7 +71,7 @@ class SaveCountry(Abstract_Country):
 		return b
 
 class SaveCountryAI(models.Model):
-	name = models.CharField(max_length=20, default='Default country')
+	name = models.CharField(max_length=30, default='Default country')
 	regions = models.ManyToManyField(SaveRegions)
 	capital = models.OneToOneField(SaveRegions, on_delete=models.CASCADE, related_name='AI_region_capital')
 	identify = models.CharField(max_length=50, default='empire', blank=True)

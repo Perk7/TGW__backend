@@ -17,9 +17,7 @@ def start_game(request):
     Get user with selected country and make new game
     """
     data = request.data
-
-    new_game = create_new_game(data['user'], data['country'])
-    
+    new_game = create_new_game(data['login'], data['country'])
     data = json.dumps(new_game.as_json())
 
     return Response(data, status=status.HTTP_201_CREATED if new_game else status.HTTP_204_NO_CONTENT)
@@ -30,11 +28,8 @@ def load_game(request):
     """
     Load having game by time
     """
-    
     data = request.data
-    
-    save = load_game_by_time(data['user'], data['time'])
-
+    save = load_game_by_time(data['login'], data['time'])
     data = json.dumps(save.as_json())
 
     return Response(data, status=status.HTTP_201_CREATED if save else status.HTTP_204_NO_CONTENT)
@@ -47,9 +42,7 @@ def save_game(request):
     Save having game
     """
     data = request.data
-    
-    save = save_current_game(data['username'], data['store'])
-
+    save = save_current_game(data['login'], data['store'])
     data = json.dumps(save.as_json())
 
     return Response(data, status=status.HTTP_201_CREATED if save else status.HTTP_204_NO_CONTENT)

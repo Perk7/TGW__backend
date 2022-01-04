@@ -52,7 +52,7 @@ def delete_save_by_time(request):
     Delete save by data from request
     """
     req_data = request.data
-    user = get_user_by_name(req_data['user'])
+    user = get_user_by_name(req_data['login'])
     save = get_save_by_save_time(user, req_data)
 
     if not (user and save):

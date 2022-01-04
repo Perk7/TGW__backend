@@ -24,7 +24,7 @@ def send_mail_with_code(mail: str, type: mail_types) -> int:
         'Verification Code': f'\nПочта: {mail}\nВаш код подтверждения электронной почты: {code}\n.'
     }
 
-    send_mail(type, datetime.datetime.now() + hash_msg[type], settings.EMAIL_HOST_USER,
+    send_mail(type, str(datetime.datetime.now()) + hash_msg[type], settings.EMAIL_HOST_USER,
               [mail], fail_silently=False)
 
     return code
@@ -106,14 +106,13 @@ def try_send_confirm_email_code(mail: str) -> str:
 
 def check_condition_for_login(authorizied: bool, data: dict) -> dict:
     '''
-    Check conditions fpr login user and return status with user Object or Fasle
+    Check conditions for login user and return status with user Object or Fasle
     '''
     status = 'already' if authorizied else 'wrong'
     user = False
-
     if not authorizied:
         try:
-            if CustomAuth.objects.filter(username=data['login']):
+            if data['login'] in [i.username for i in CustomAuth.objects.all()]:
                 user = get_object_or_404(CustomAuth, username=data['login'])
                 checking = check_password(data['password'], user.password)
                 status = 'success' if checking else 'wrong'
