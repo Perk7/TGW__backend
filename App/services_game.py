@@ -1,5 +1,7 @@
 from django.db.utils import OperationalError
 from django.shortcuts import get_object_or_404
+
+from .services_api import find_saved_game_by_time
 from .models_auth import CustomAuth
 from typing import Dict, List, Literal, Union
 
@@ -265,20 +267,7 @@ def create_new_game(user: str, country: str) -> Union[StartGame, dict]:
 
     return save_block
 
-def find_saved_game_by_time(user: CustomAuth, time: str) -> StartGame:
-    """
-    Parsing time format and find needing StartGame object
-    """
-    time = ' '.join(time.split('T'))[0:-7]
-
-    save = None
-    for i in user.saves.all():
-        if time == str(i.save_date)[0:-7]:
-            save = i
-    
-    return save
-
-def load_game_by_time(user: str, time: str) -> StartGame:
+def load_game_by_time(user: str, time: str) -> Union[StartGame, bool]:
     """
     Find having StartGame object of user by time
     """
@@ -289,8 +278,9 @@ def load_game_by_time(user: str, time: str) -> StartGame:
 
     save = find_saved_game_by_time(user, time)
 
-    user.active_save = save.id
-    user.save()
+    if save:
+        user.active_save = save.id
+        user.save()
 
     return save
 
@@ -305,6 +295,9 @@ def save_current_game(user: str, store: dict) -> Union[dict, StartGame]:
 
     time = store['save_date']
     save = find_saved_game_by_time(user, time)
+
+    if not save:
+        return {}
 
     # Buffs
     save.buffs = CountryBonus(**store['buffs'])

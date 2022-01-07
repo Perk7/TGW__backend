@@ -78,17 +78,17 @@ def login_with_request_data(request: HttpRequest, req_data: dict) -> bool:
 
     return status
 
-def get_save_by_save_time(user: CustomAuth, req_data: dict) -> Union[StartGame, bool]:
+def find_saved_game_by_time(user: CustomAuth, time: str) -> Union[StartGame, bool]:
     """
-    Return StartGame object by time if exist, else False
+    Parsing time format and find needing StartGame object
     """
-    save_time = req_data['time']
-    save_time = ' '.join(save_time.split('T'))[0:-1]
+    time = ' '.join(time.split('T'))[0:-4]
+
     save = None
     for i in user.saves.all():
-        if save_time == str(i.save_date)[0:-9]:
+        if time == str(i.save_date)[0:-7]:
             save = i
-
+    
     return save if save else False
 
 def delete_save_by_object(user: CustomAuth, save: StartGame) -> CustomAuth:

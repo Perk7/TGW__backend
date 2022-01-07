@@ -49,7 +49,7 @@ def try_login(request):
     return Response(json.dumps({
         'status': result['status'],
         'log': result['status'] == 'success'
-    }), status=status.HTTP_201_CREATED if result['status'] == 'success' else status.HTTP_200_OK)
+    }), status=status.HTTP_200_OK if result['status'] == 'success' else status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['GET'])
 def try_logout(request):
@@ -69,7 +69,7 @@ def recovery_password(request):
 
     return Response(json.dumps({
             'status': 'success' if success else 'fail'
-        }), status=status.HTTP_201_CREATED if success else status.HTTP_200_OK)
+        }), status=status.HTTP_201_CREATED if success else status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def recovery_password_code(request):
@@ -81,4 +81,4 @@ def recovery_password_code(request):
     return Response(json.dumps({
         'status': 'success' if code else 'wrong',
         'code': code
-    }), status=status.HTTP_201_CREATED if code else status.HTTP_200_OK)
+    }), status=status.HTTP_200_OK if code else status.HTTP_400_BAD_REQUEST)

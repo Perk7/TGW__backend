@@ -53,7 +53,7 @@ def delete_save_by_time(request):
     """
     req_data = request.data
     user = get_user_by_name(req_data['login'])
-    save = get_save_by_save_time(user, req_data)
+    save = find_saved_game_by_time(user, req_data['time'][:5])
 
     if not (user and save):
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)

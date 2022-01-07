@@ -30,7 +30,8 @@ def load_game(request):
     """
     data = request.data
     save = load_game_by_time(data['login'], data['time'])
-    data = json.dumps(save.as_json())
+    if save:
+        data = json.dumps(save.as_json())
 
     return Response(data, status=status.HTTP_201_CREATED if save else status.HTTP_204_NO_CONTENT)
 

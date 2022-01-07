@@ -1,5 +1,4 @@
 import hashlib
-from django.db.models.query import RawQuerySet
 
 from rest_framework.response import Response
 from .models_auth import CustomAuth
@@ -29,7 +28,7 @@ def check_api_key(func: Callable) -> Callable:
         if login not in [i.username for i in CustomAuth.objects.all()]:
             return Response(json.dumps({
                     'status': False,
-                    'desc': "You are not authorizied"
+                    'desc': "You are not authorized"
                 }), status=status.HTTP_401_UNAUTHORIZED)
     
         secret_key = config['SECRET_KEY']
@@ -42,7 +41,7 @@ def check_api_key(func: Callable) -> Callable:
         if key != hex_enc:
             return Response(json.dumps({
                     'status': False,
-                    'desc': "You are not authorizied"
+                    'desc': "You are not authorized"
                 }), status=status.HTTP_401_UNAUTHORIZED)
         else:
             result = func(request)

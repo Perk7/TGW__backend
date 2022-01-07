@@ -108,7 +108,7 @@ def check_condition_for_login(authorizied: bool, data: dict) -> dict:
     '''
     Check conditions for login user and return status with user Object or Fasle
     '''
-    status = 'already' if authorizied else 'wrong'
+    status = 'wrong'
     user = False
     if not authorizied:
         try:
