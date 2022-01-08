@@ -45,7 +45,6 @@ def try_login(request):
 
     if result['status'] == 'success':
         login(request, result['user'])
-
     return Response(json.dumps({
         'status': result['status'],
         'log': result['status'] == 'success'
