@@ -20,7 +20,7 @@ def check_email(request):
     return Response(json.dumps({
             'status': bool(code),
             'code': code
-        }), status=status.HTTP_201_CREATED if code else status.HTTP_208_ALREADY_REPORTED)
+        }), status=status.HTTP_201_CREATED if code else status.HTTP_400_BAD_REQUEST)
         
 @api_view(['POST'])
 def registration_in_system(request):
@@ -34,7 +34,7 @@ def registration_in_system(request):
                 'status' : auth_status['success'],
                 'login' : auth_status['login'],
                 'email' : auth_status['email'],
-            }), status=status.HTTP_201_CREATED if auth_status['success'] else status.HTTP_200_OK)
+            }), status=status.HTTP_201_CREATED if auth_status['success'] else status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def try_login(request):
